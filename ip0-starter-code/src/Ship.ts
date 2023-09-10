@@ -3,6 +3,8 @@ import Venusian from './Venusian';
 export default class Ship {
   static usedSerialNumber = 0;
 
+  // static serialNumbers = new Set<number>();
+
   crew: Venusian[];
 
   daughters: Ship[];
@@ -14,7 +16,7 @@ export default class Ship {
   constructor(crew: Venusian[], daughters: Ship[]){
     this.crew = crew;
     this.daughters = daughters;
-    Ship.usedSerialNumber += 2;
+    Ship.usedSerialNumber += 1;
     this.shipSerialNumber = Ship.usedSerialNumber;
   }
 
@@ -31,13 +33,13 @@ export default class Ship {
   }
 
   hasWaldo():boolean{
-    return this.crew.some((crewMember) => crewMember.venusianName === 'Waldo');
+    return this.crew.some((crewMember) => crewMember.getName() === 'Waldo');
   }
 
   totalWaldos():number{
     this.waldoCount = 0;
     this.crew.forEach((crewMember) => {
-      if (crewMember.venusianName === 'Waldo'){
+      if (crewMember.getName() === 'Waldo'){
         this.waldoCount += 1;
       }
     });
@@ -50,7 +52,7 @@ export default class Ship {
   }
 
   removeWaldos():void{
-    this.crew = this.crew.filter((crewMember) => crewMember.venusianName !== 'Waldo');
+    this.crew = this.crew.filter((crewMember) => crewMember.getName() !== 'Waldo');
     this.waldoCount = 0;
   }
 
@@ -61,23 +63,22 @@ export default class Ship {
     });
   }
 
-  fleetHasDuplicates():boolean{
+  fleetHasDuplicates(): boolean {
     const serialNumbers = new Set<number>();
+    const queue: Ship[] = [this];
 
-    if (serialNumbers.has(this.shipSerialNumber)){
-      return true;
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (current !== undefined) {
+        if (serialNumbers.has(current.getSerialNumber())) {
+          return true;
+        }
+        serialNumbers.add(current.getSerialNumber());
+        queue.push(...current.getDaughters());
+      }
     }
 
-    serialNumbers.add(this.shipSerialNumber);
-
-    let fleetHasDuplicates = false;
-
-    this.daughters.forEach((daughter) => {
-      if (daughter.fleetHasDuplicates()) {
-        fleetHasDuplicates = true;
-      }
-    });
-
-    return fleetHasDuplicates;
+    return false;
   }
+
 }
